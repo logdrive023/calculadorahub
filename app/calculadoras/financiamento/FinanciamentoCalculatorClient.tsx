@@ -103,14 +103,14 @@ export default function FinanciamentoCalculatorClient() {
     }
 
     // Fórmula Price: PMT = PV * (r * (1 + r)^n) / ((1 + r)^n - 1)
-    const valorParcela =
+    const valorParcelaBase =
       (valorFinanciamento * (taxaMensal * Math.pow(1 + taxaMensal, prazo))) / (Math.pow(1 + taxaMensal, prazo) - 1)
 
     let saldoDevedor = valorFinanciamento
 
     for (let i = 1; i <= prazo; i++) {
       const juros = saldoDevedor * taxaMensal
-      const amortizacao = valorParcela - juros
+      const amortizacao = valorParcelaBase - juros
       saldoDevedor -= amortizacao
 
       // Ajuste para o último mês para evitar saldo negativo devido a arredondamentos
@@ -120,13 +120,13 @@ export default function FinanciamentoCalculatorClient() {
 
       parcelas.push({
         numero: i + carencia,
-        valorParcela,
+        valorParcela: valorParcelaBase,
         amortizacao,
         juros,
         saldoDevedor: Math.max(0, saldoDevedor),
         taxaAdministrativa,
         seguro,
-        valorTotal: valorParcela + taxaAdministrativa + seguro,
+        valorTotal: valorParcelaBase + taxaAdministrativa + seguro,
       })
     }
 
@@ -165,18 +165,19 @@ export default function FinanciamentoCalculatorClient() {
 
     for (let i = 1; i <= prazo; i++) {
       const juros = saldoDevedor * taxaMensal
-      const valorParcela = amortizacaoConstante + juros
+      const valorParcelaBase = amortizacaoConstante + juros
+
       saldoDevedor -= amortizacaoConstante
 
       parcelas.push({
         numero: i + carencia,
-        valorParcela,
+        valorParcela: valorParcelaBase,
         amortizacao: amortizacaoConstante,
         juros,
         saldoDevedor: Math.max(0, saldoDevedor),
         taxaAdministrativa,
         seguro,
-        valorTotal: valorParcela + taxaAdministrativa + seguro,
+        valorTotal: valorParcelaBase + taxaAdministrativa + seguro,
       })
     }
 
@@ -196,11 +197,11 @@ export default function FinanciamentoCalculatorClient() {
 
     // Estimativa inicial baseada na taxa de juros + custos adicionais
     const totalPago = parcelas.reduce((sum, parcela) => sum + (parcela.valorTotal || parcela.valorParcela), 0)
-    const custoTotal = totalPago - valorFinanciamento + iof
+    const custoTotal = totalPago - valorFinanciamento + valorEntrada + iof
 
     // Estimativa simplificada do CET anual
     const prazoAnos = parcelas.length / 12
-    const cetEstimado = (custoTotal / valorFinanciamento / prazoAnos) * 100
+    const cetEstimado = (custoTotal / (valorFinanciamento - valorEntrada) / prazoAnos) * 100
 
     return cetEstimado
   }
@@ -242,8 +243,8 @@ export default function FinanciamentoCalculatorClient() {
       parcelas = calcularSAC(valorFinanciadoTotal, taxaJurosAjustada, prazo, taxaAdministrativa, seguro, carencia)
     }
 
-    const valorPrimeiraParcela = parcelas[0].valorParcela
-    const valorUltimaParcela = parcelas[parcelas.length - 1].valorParcela
+    const valorPrimeiraParcela = parcelas[carencia].valorTotal || 0
+    const valorUltimaParcela = parcelas[parcelas.length - 1].valorTotal || 0
 
     const totalJuros = parcelas.reduce((sum, parcela) => sum + parcela.juros, 0)
     const totalTaxaAdministrativa = parcelas.reduce((sum, parcela) => sum + (parcela.taxaAdministrativa || 0), 0)
@@ -615,7 +616,9 @@ export default function FinanciamentoCalculatorClient() {
                               {result.parcelas.slice(0, 12).map((parcela) => (
                                 <tr key={parcela.numero} className={parcela.numero % 2 === 0 ? "bg-background/50" : ""}>
                                   <td className="border p-2">{parcela.numero}</td>
-                                  <td className="border p-2">R$ {parcela.valorParcela.toFixed(2)}</td>
+                                  <td className="border p-2">
+                                    R$ {parcela.valorTotal?.toFixed(2) || parcela.valorParcela.toFixed(2)}
+                                  </td>
                                   <td className="border p-2">R$ {parcela.amortizacao.toFixed(2)}</td>
                                   <td className="border p-2">R$ {parcela.juros.toFixed(2)}</td>
                                   <td className="border p-2">R$ {parcela.taxaAdministrativa?.toFixed(2)}</td>

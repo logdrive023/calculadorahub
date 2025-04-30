@@ -13,6 +13,7 @@ import {
   DollarSign,
   Building,
   Clock,
+  Droplet,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -57,6 +58,11 @@ export default function Header() {
       href: "/calculadoras/horas-trabalhadas",
       icon: <Clock className="h-5 w-5 mr-2" aria-hidden="true" />,
     },
+    {
+      name: "Água",
+      href: "/calculadoras/agua",
+      icon: <Droplet className="h-5 w-5 mr-2" aria-hidden="true" />,
+    },
     { name: "Sobre", href: "/sobre", icon: <Info className="h-5 w-5 mr-2" aria-hidden="true" /> },
   ]
 
@@ -73,12 +79,12 @@ export default function Header() {
           <span>Calculadora Hub</span>
         </Link>
 
-        <nav className="hidden md:flex gap-6" aria-label="Navegação principal" data-testid="main-nav">
+        <nav className="hidden lg:flex gap-2 lg:gap-6" aria-label="Navegação principal" data-testid="main-nav">
           {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm font-medium transition-colors hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary rounded px-2 py-1"
+              className="text-xs md:text-sm font-medium transition-colors hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary rounded px-1 md:px-2 py-1 whitespace-nowrap"
               data-testid={`nav-link-${link.href.split("/").pop()}`}
             >
               {link.name}
@@ -88,7 +94,7 @@ export default function Header() {
 
         <div className="flex items-center gap-2">
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild className="md:hidden">
+            <SheetTrigger asChild className="lg:hidden">
               <Button variant="ghost" size="icon" aria-label="Abrir menu de navegação" data-testid="mobile-menu-button">
                 <Menu className="h-6 w-6" aria-hidden="true" />
                 <span className="sr-only">Abrir menu</span>

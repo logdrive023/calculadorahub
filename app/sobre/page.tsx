@@ -106,6 +106,12 @@ export default function SobrePage() {
                     facilidade.
                   </p>
                 </div>
+                <div>
+                  <h3 className="font-semibold mb-1">Calculadora de Água</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Calcule a quantidade ideal de água que você deve beber diariamente com base no seu peso e altura.
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>

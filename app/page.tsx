@@ -1,5 +1,15 @@
 import Link from "next/link"
-import { Calculator, Percent, GitCompare, FlaskConical, PiggyBank, DollarSign, Building, Clock } from "lucide-react"
+import {
+  Calculator,
+  Percent,
+  GitCompare,
+  FlaskConical,
+  PiggyBank,
+  DollarSign,
+  Building,
+  Clock,
+  Droplet,
+} from "lucide-react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import AdManager from "@/components/AdManager"
@@ -61,6 +71,13 @@ export default function Home() {
       icon: <Clock className="h-8 w-8 text-primary" aria-hidden="true" />,
       href: "/calculadoras/horas-trabalhadas",
       testId: "horas-trabalhadas",
+    },
+    {
+      title: "Calculadora de Água",
+      description: "Calcule a quantidade ideal de água que você deve beber diariamente.",
+      icon: <Droplet className="h-8 w-8 text-primary" aria-hidden="true" />,
+      href: "/calculadoras/agua",
+      testId: "agua",
     },
   ]
 
@@ -213,21 +230,21 @@ export default function Home() {
           </Card>
           <Card
             className="text-left hover:shadow-lg transition-all duration-300 hover:translate-y-[-4px] border border-border/40 hover:border-primary/30 group"
-            data-testid="featured-card-financiamento"
+            data-testid="featured-card-agua"
           >
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Building
+                <Droplet
                   className="h-6 w-6 text-primary/80 group-hover:text-primary transition-colors duration-300 transform group-hover:scale-110"
                   aria-hidden="true"
                 />
-                Calculadora de Financiamento
+                Calculadora de Água
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p>
-                Simule financiamentos com sistemas SAC e Price. Compare as parcelas, juros e o custo total para tomar a
-                melhor decisão ao financiar um imóvel, veículo ou qualquer outro bem.
+                Descubra a quantidade ideal de água que você deve beber diariamente com base no seu peso e altura.
+                Mantenha-se hidratado e melhore sua saúde com recomendações personalizadas.
               </p>
             </CardContent>
             <CardFooter>
@@ -235,10 +252,10 @@ export default function Home() {
                 asChild
                 variant="outline"
                 className="w-full border-primary/20 hover:border-primary/40 hover:bg-primary/5 text-foreground font-medium py-2.5 rounded-lg transition-all duration-200"
-                data-testid="featured-button-financiamento"
+                data-testid="featured-button-agua"
               >
-                <Link href="/calculadoras/financiamento" className="flex items-center justify-center gap-2 group">
-                  Usar Calculadora de Financiamento
+                <Link href="/calculadoras/agua" className="flex items-center justify-center gap-2 group">
+                  Usar Calculadora de Água
                   <svg
                     width="18"
                     height="18"
