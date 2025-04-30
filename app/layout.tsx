@@ -43,7 +43,7 @@ export default function RootLayout({
           Quando estiver pronto para usar o AdSense em produção, 
           descomente a linha abaixo e substitua o ID de exemplo pelo seu ID real
         */}
-        {/* <meta name="google-adsense-account" content="ca-pub-XXXXXXXXXXXXXXXX" /> */}
+        <meta name="google-adsense-account" content="ca-pub-4488733165053759" />
       </head>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>

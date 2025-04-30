@@ -7,7 +7,7 @@ import Script from "next/script"
 
 // Defina seu ID de publicante do Google AdSense aqui
 // Formato: ca-pub-XXXXXXXXXXXXXXXX
-const ADSENSE_PUB_ID = "ca-pub-XXXXXXXXXXXXXXXX" // Substitua pelo seu ID quando tiver
+const ADSENSE_PUB_ID: string = "ca-pub-4488733165053759" // Substitua pelo seu ID quando tiver
 
 interface AdSenseBlockProps {
   adSlot?: string // ID do slot do anúncio
@@ -54,7 +54,7 @@ export default function AdSenseBlock({
 
   // Inicializar o anúncio quando o componente montar
   useEffect(() => {
-    if (!isClient || !ADSENSE_PUB_ID || ADSENSE_PUB_ID === "ca-pub-XXXXXXXXXXXXXXXX") {
+    if (!isClient || !ADSENSE_PUB_ID || ADSENSE_PUB_ID === "ca-pub-XXXXXXXXXXXXX") {
       setAdFailed(true)
       onAdFailed?.()
       return
@@ -131,7 +131,7 @@ export default function AdSenseBlock({
 
   return (
     <>
-      {isClient && ADSENSE_PUB_ID !== "ca-pub-XXXXXXXXXXXXXXXX" && (
+      {isClient && ADSENSE_PUB_ID !== "ca-pub-XXXXXXXXXXXXXX" && (
         <Script
           id="adsense-init"
           strategy="afterInteractive"
