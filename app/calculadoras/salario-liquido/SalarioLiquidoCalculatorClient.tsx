@@ -16,45 +16,27 @@ import { Checkbox } from "@/components/ui/checkbox"
 import CalculatorLayout from "@/components/CalculatorLayout"
 import FuncoesExplicacao from "@/components/FuncoesExplicacao"
 
-// Remover a constante SALARIO_MINIMO
-// Remover a linha:
-// const SALARIO_MINIMO = 1412
-
-// Modificar o schema para remover a validação de salário mínimo
-// Substituir o formSchema por:
-const formSchema = z.object({
-  salarioBruto: z.coerce.number().positive("O salário deve ser maior que zero"),
-  numeroDependentes: z.coerce.number().min(0, "O número de dependentes não pode ser negativo").default(0),
-  outrosDescontos: z.coerce.number().min(0, "O valor não pode ser negativo").optional().default(0),
-  tipoContrato: z.enum(["clt", "pj", "servidor"]),
-  pensaoAlimenticia: z.coerce.number().min(0, "O valor não pode ser negativo").optional().default(0),
-  planoSaude: z.coerce.number().min(0, "O valor não pode ser negativo").optional().default(0),
-  valeTransporte: z.boolean().default(false),
-  valorValeTransporte: z.coerce.number().min(0, "O valor não pode ser negativo").optional().default(0),
-  valeRefeicao: z.coerce.number().min(0, "O valor não pode ser negativo").optional().default(0),
-  horasExtras: z.coerce.number().min(0, "O valor não pode ser negativo").optional().default(0),
-  adicionalNoturno: z.coerce.number().min(0, "O valor não pode ser negativo").optional().default(0),
-  incluirDecimoTerceiro: z.boolean().default(false),
-  incluirFerias: z.boolean().default(false),
-})
-
 export default function SalarioLiquidoCalculatorClient() {
-  const [result, setResult] = useState<{
-    salarioBruto: number
-    descontoINSS: number
-    descontoIRRF: number
-    outrosDescontos: number
-    salarioLiquido: number
-    aliquotaEfetivaINSS: number
-    aliquotaEfetivaIRRF: number
-    percentualTotal: number
-    decimoTerceiro?: number
-    ferias?: number
-    totalAdicionais?: number
-  } | null>(null)
+  // Definir o schema dentro do componente
+  const formSchema = z.object({
+    salarioBruto: z.coerce.number().positive("O salário deve ser maior que zero"),
+    numeroDependentes: z.coerce.number().min(0, "O número de dependentes não pode ser negativo").default(0),
+    outrosDescontos: z.coerce.number().min(0, "O valor não pode ser negativo").optional().default(0),
+    tipoContrato: z.enum(["clt", "pj", "servidor", "mei", "me"]),
+    aliquotaMEI: z.coerce.number().min(0, "O valor não pode ser negativo").optional().default(66),
+    aliquotaME: z.coerce.number().min(0, "O valor não pode ser negativo").optional().default(6),
+    pensaoAlimenticia: z.coerce.number().min(0, "O valor não pode ser negativo").optional().default(0),
+    planoSaude: z.coerce.number().min(0, "O valor não pode ser negativo").optional().default(0),
+    valeTransporte: z.boolean().default(false),
+    valorValeTransporte: z.coerce.number().min(0, "O valor não pode ser negativo").optional().default(0),
+    valeRefeicao: z.coerce.number().min(0, "O valor não pode ser negativo").optional().default(0),
+    horasExtras: z.coerce.number().min(0, "O valor não pode ser negativo").optional().default(0),
+    adicionalNoturno: z.coerce.number().min(0, "O valor não pode ser negativo").optional().default(0),
+    incluirDecimoTerceiro: z.boolean().default(false),
+    incluirFerias: z.boolean().default(false),
+  })
 
-  const [activeTab, setActiveTab] = useState("mensal")
-
+  // Inicializar o useForm dentro do componente
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -62,6 +44,8 @@ export default function SalarioLiquidoCalculatorClient() {
       numeroDependentes: 0,
       outrosDescontos: 0,
       tipoContrato: "clt",
+      aliquotaMEI: 66,
+      aliquotaME: 6,
       pensaoAlimenticia: 0,
       planoSaude: 0,
       valeTransporte: false,
@@ -74,12 +58,29 @@ export default function SalarioLiquidoCalculatorClient() {
     },
   })
 
+  const [result, setResult] = useState<{
+    salarioBruto: number
+    descontoINSS: number
+    descontoIRRF: number
+    outrosDescontos: number
+    salarioLiquido: number
+    aliquotaEfetivaINSS: number
+    aliquotaEfetivaIRRF: number
+    percentualTotal: number
+    decimoTerceiro?: number
+    ferias?: number
+    totalAdicionais?: number
+    tipoContrato?: string
+  } | null>(null)
+
+  const [activeTab, setActiveTab] = useState("mensal")
+
   const tipoContrato = form.watch("tipoContrato")
   const valeTransporte = form.watch("valeTransporte")
 
-  // Resetar validação quando o tipo de contrato mudar
+  const incluirFerias = form.watch("incluirFerias")
+
   useEffect(() => {
-    // Revalidar o campo de salário bruto quando o tipo de contrato mudar
     form.trigger("salarioBruto")
   }, [tipoContrato, form])
 
@@ -88,7 +89,6 @@ export default function SalarioLiquidoCalculatorClient() {
     aliquotaEfetiva: number
     faixas: Array<{ faixa: string; valor: number; aliquota: number }>
   } {
-    // Tabela INSS 2023
     let inss = 0
     const faixas = []
 
@@ -120,7 +120,6 @@ export default function SalarioLiquidoCalculatorClient() {
       faixas.push({ faixa: "De R$ 3.856,95 até R$ 7.507,49", valor: faixa4, aliquota: 14 })
       inss = faixa1 + faixa2 + faixa3 + faixa4
     } else {
-      // Teto do INSS
       const faixa1 = 1320 * 0.075
       const faixa2 = (2571.29 - 1320) * 0.09
       const faixa3 = (3856.94 - 2571.29) * 0.12
@@ -143,7 +142,6 @@ export default function SalarioLiquidoCalculatorClient() {
     numeroDependentes: number,
     pensaoAlimenticia: number,
   ): { valor: number; aliquotaEfetiva: number } {
-    // Base de cálculo: salário bruto - INSS - dependentes (R$ 189,59 por dependente) - pensão alimentícia
     const deducaoPorDependente = 189.59
     const baseCalculo = salarioBruto - descontoINSS - numeroDependentes * deducaoPorDependente - pensaoAlimenticia
 
@@ -151,9 +149,7 @@ export default function SalarioLiquidoCalculatorClient() {
     let aliquota = 0
     let deducao = 0
 
-    // Tabela IRRF 2023
     if (baseCalculo <= 2112.0) {
-      // Isento
       irrf = 0
       aliquota = 0
       deducao = 0
@@ -172,7 +168,7 @@ export default function SalarioLiquidoCalculatorClient() {
     }
 
     irrf = baseCalculo * (aliquota / 100) - deducao
-    irrf = Math.max(0, irrf) // Garante que o IRRF não seja negativo
+    irrf = Math.max(0, irrf)
 
     const aliquotaEfetiva = baseCalculo > 0 ? (irrf / baseCalculo) * 100 : 0
 
@@ -196,7 +192,6 @@ export default function SalarioLiquidoCalculatorClient() {
       incluirFerias,
     } = values
 
-    // Calcular adicionais
     const totalAdicionais = (horasExtras || 0) + (adicionalNoturno || 0)
     const salarioBrutoComAdicionais = salarioBruto + totalAdicionais
 
@@ -204,8 +199,11 @@ export default function SalarioLiquidoCalculatorClient() {
     let descontoIRRF = 0
     let aliquotaEfetivaINSS = 0
     let aliquotaEfetivaIRRF = 0
+    let totalOutrosDescontos = 0
+    let descontoValeTransporte = 0
+    let descontoSimplesMEI = 0
+    let descontoSimplesME = 0
 
-    // Calcular descontos conforme o tipo de contrato
     if (tipoContrato === "clt") {
       const resultadoINSS = calcularINSS(salarioBrutoComAdicionais)
       descontoINSS = resultadoINSS.valor
@@ -214,40 +212,55 @@ export default function SalarioLiquidoCalculatorClient() {
       const resultadoIRRF = calcularIRRF(salarioBrutoComAdicionais, descontoINSS, numeroDependentes, pensaoAlimenticia)
       descontoIRRF = resultadoIRRF.valor
       aliquotaEfetivaIRRF = resultadoIRRF.aliquotaEfetiva
+
+      descontoValeTransporte = valeTransporte ? Math.min(salarioBruto * 0.06, valorValeTransporte) : 0
+
+      totalOutrosDescontos = (outrosDescontos || 0) + (planoSaude || 0) + descontoValeTransporte - (valeRefeicao || 0)
     } else if (tipoContrato === "pj") {
-      // Para PJ, não há INSS e IRRF é calculado de forma diferente
-      // Simplificação: considerar apenas o imposto simplificado (DAS)
       descontoINSS = 0
-      descontoIRRF = salarioBrutoComAdicionais * 0.06 // Simplificação do DAS
+      descontoIRRF = 0
       aliquotaEfetivaINSS = 0
-      aliquotaEfetivaIRRF = 6
+      aliquotaEfetivaIRRF = 0
+
+      const impostoRendaPJ = salarioBrutoComAdicionais * 0.15
+
+      totalOutrosDescontos = (outrosDescontos || 0) + (planoSaude || 0) + impostoRendaPJ - (valeRefeicao || 0)
+    } else if (tipoContrato === "mei") {
+      descontoINSS = 0
+      descontoIRRF = 0
+      aliquotaEfetivaINSS = 0
+      aliquotaEfetivaIRRF = 0
+
+      descontoSimplesMEI = values.aliquotaMEI || 66.0
+
+      totalOutrosDescontos = (outrosDescontos || 0) + (planoSaude || 0) + descontoSimplesMEI - (valeRefeicao || 0)
+    } else if (tipoContrato === "me") {
+      descontoINSS = 0
+      descontoIRRF = 0
+      aliquotaEfetivaINSS = 0
+      aliquotaEfetivaIRRF = 0
+
+      const aliquotaSimples = values.aliquotaME || 6
+      descontoSimplesME = salarioBrutoComAdicionais * (aliquotaSimples / 100)
+
+      totalOutrosDescontos = (outrosDescontos || 0) + (planoSaude || 0) + descontoSimplesME - (valeRefeicao || 0)
     } else if (tipoContrato === "servidor") {
-      // Para servidor público, INSS é substituído por contribuição própria
-      descontoINSS = salarioBrutoComAdicionais * 0.11 // Alíquota padrão para servidores
+      descontoINSS = salarioBrutoComAdicionais * 0.11
       aliquotaEfetivaINSS = 11
 
       const resultadoIRRF = calcularIRRF(salarioBrutoComAdicionais, descontoINSS, numeroDependentes, pensaoAlimenticia)
       descontoIRRF = resultadoIRRF.valor
       aliquotaEfetivaIRRF = resultadoIRRF.aliquotaEfetiva
+
+      totalOutrosDescontos = (outrosDescontos || 0) + (planoSaude || 0) - (valeRefeicao || 0)
     }
 
-    // Calcular vale transporte (6% do salário bruto)
-    const descontoValeTransporte = valeTransporte ? Math.min(salarioBruto * 0.06, valorValeTransporte) : 0
-
-    // Outros descontos
-    const totalOutrosDescontos =
-      (outrosDescontos || 0) + (planoSaude || 0) + descontoValeTransporte - (valeRefeicao || 0)
-
-    // Calcular salário líquido
     const salarioLiquido = salarioBrutoComAdicionais - descontoINSS - descontoIRRF - totalOutrosDescontos
 
-    // Calcular percentual total de descontos
     const totalDescontos = descontoINSS + descontoIRRF + totalOutrosDescontos
     const percentualTotal = (totalDescontos / salarioBrutoComAdicionais) * 100
 
-    // Calcular 13º e férias se solicitado
     const decimoTerceiro = incluirDecimoTerceiro ? salarioBruto / 12 : undefined
-    const ferias = incluirFerias ? (salarioBruto + salarioBruto / 3) / 12 : undefined
 
     setResult({
       salarioBruto: salarioBrutoComAdicionais,
@@ -259,8 +272,12 @@ export default function SalarioLiquidoCalculatorClient() {
       aliquotaEfetivaIRRF,
       percentualTotal,
       decimoTerceiro,
-      ferias,
+      ferias:
+        incluirFerias && (tipoContrato === "clt" || tipoContrato === "servidor")
+          ? (salarioBruto + salarioBruto / 3) / 12
+          : undefined,
       totalAdicionais,
+      tipoContrato,
     })
 
     setActiveTab("mensal")
@@ -298,7 +315,9 @@ export default function SalarioLiquidoCalculatorClient() {
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="clt">CLT</SelectItem>
-                          <SelectItem value="pj">PJ (Pessoa Jurídica)</SelectItem>
+                          {/*<SelectItem value="pj">PJ (Pessoa Jurídica)</SelectItem>*/}
+                          <SelectItem value="mei">MEI (Microempreendedor Individual)</SelectItem>
+                          <SelectItem value="me">ME (Microempresa)</SelectItem>
                           <SelectItem value="servidor">Servidor Público</SelectItem>
                         </SelectContent>
                       </Select>
@@ -306,6 +325,38 @@ export default function SalarioLiquidoCalculatorClient() {
                     </FormItem>
                   )}
                 />
+
+                {tipoContrato === "mei" && (
+                  <FormField
+                    control={form.control}
+                    name="aliquotaMEI"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Valor do DAS-MEI (R$)</FormLabel>
+                        <FormControl>
+                          <Input type="number" placeholder="Ex: 66" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {tipoContrato === "me" && (
+                  <FormField
+                    control={form.control}
+                    name="aliquotaME"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Alíquota do Simples Nacional (%)</FormLabel>
+                        <FormControl>
+                          <Input type="number" placeholder="Ex: 6" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 <FormField
                   control={form.control}
@@ -316,13 +367,12 @@ export default function SalarioLiquidoCalculatorClient() {
                       <FormControl>
                         <Input type="number" placeholder="Ex: 3000" {...field} />
                       </FormControl>
-                      {/* Nenhuma mensagem sobre salário mínimo */}
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                {tipoContrato !== "pj" && (
+                {(tipoContrato === "clt" || tipoContrato === "servidor") && (
                   <FormField
                     control={form.control}
                     name="numeroDependentes"
@@ -375,7 +425,7 @@ export default function SalarioLiquidoCalculatorClient() {
                 <div className="space-y-4">
                   <h3 className="text-sm font-medium">Descontos e Benefícios</h3>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    {tipoContrato !== "pj" && (
+                    {(tipoContrato === "clt" || tipoContrato === "servidor") && (
                       <FormField
                         control={form.control}
                         name="pensaoAlimenticia"
@@ -487,20 +537,22 @@ export default function SalarioLiquidoCalculatorClient() {
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
-                      name="incluirFerias"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center space-x-3 space-y-0">
-                          <FormControl>
-                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>Incluir férias proporcionais (com 1/3)</FormLabel>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
+                    {(tipoContrato === "clt" || tipoContrato === "servidor") && (
+                      <FormField
+                        control={form.control}
+                        name="incluirFerias"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>Incluir férias proporcionais (com 1/3)</FormLabel>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                    )}
                   </div>
                 </div>
 
@@ -565,6 +617,18 @@ export default function SalarioLiquidoCalculatorClient() {
                           <div className="bg-background p-3 rounded-md">
                             <p className="text-sm text-muted-foreground">Outros Descontos:</p>
                             <p className="font-semibold">R$ {result.outrosDescontos.toFixed(2)}</p>
+                          </div>
+                        )}
+                        {result.tipoContrato === "mei" && (
+                          <div className="bg-background p-3 rounded-md">
+                            <p className="text-sm text-muted-foreground">DAS-MEI:</p>
+                            <p className="font-semibold">R$ 66,00</p>
+                          </div>
+                        )}
+                        {result.tipoContrato === "me" && (
+                          <div className="bg-background p-3 rounded-md">
+                            <p className="text-sm text-muted-foreground">Simples Nacional:</p>
+                            <p className="font-semibold">R$ {(result.salarioBruto * 0.06).toFixed(2)}</p>
                           </div>
                         )}
                         {result.decimoTerceiro && (
